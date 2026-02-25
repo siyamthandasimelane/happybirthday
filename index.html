@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Messages (Local Only)</title>
+    <link rel="stylesheet" href="../anon-message-app/styles.css">
+    <style>
+        /* override or add any quick tweaks */
+        .sidebar a { font-size: 1rem; }
+        .site-footer { text-align: center; padding: 10px 0; margin-top: 20px; }
+        .auth-container, .dashboard-container { max-width: 1000px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <!-- auth screens (login/signup) -> visible when no currentUser -->
+    <div id="auth-wrapper" class="auth-container" style="display:none;">
+        <div class="auth-form-wrapper">
+            <!-- Login Form -->
+            <div id="login-form-container" class="form-container active">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <input type="email" id="login-email" placeholder="Email" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+                <p>Don't have an account? <a href="#" onclick="toggleForm()">Sign up</a></p>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form-container" class="form-container">
+                <h2>Create Account</h2>
+                <form id="signup-form">
+                    <input type="text" id="signup-username" placeholder="Username" required>
+                    <input type="email" id="signup-email" placeholder="Email" required>
+                    <input type="password" id="signup-password" placeholder="Password (min 6 chars)" required>
+                    <input type="text" id="referral-code" placeholder="Referral Code (optional)">
+                    <button type="submit" class="btn btn-primary">Create Account</button>
+                </form>
+                <p>Already have an account? <a href="#" onclick="toggleForm()">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- dashboard screen -> visible when logged in -->
+    <div id="dashboard-wrapper" style="display:none;">
+        <div class="sidebar">
+            <h3 style="text-align:center; margin-bottom:20px;">💬<span class="label">Anon Messages</span></h3>
+            <a href="#" onclick="showPage('inbox')">📥<span class="label">Inbox</span></a>
+            <a href="#" onclick="showPage('send')">✉️<span class="label">Send</span></a>
+            <a href="#" onclick="showPage('profile')">👤<span class="label">My Profile</span></a>
+            <a href="#" onclick="showPage('settings')">⚙️<span class="label">Settings</span></a>
+            <a href="#" onclick="showPage('referral')">🔗<span class="label">Referral</span></a>
+            <a href="#" onclick="showPage('about')">ℹ️<span class="label">About Us</span></a>
+            <a href="tel:0765160521">📞<span class="label">Contact</span></a>
+            <a href="#" onclick="logout()">🚪<span class="label">Logout</span></a>
+        </div>
+        <div class="dashboard-container main-content">
+            <!-- Inbox Page -->
+            <div id="inbox-page" class="page active">
+                <h2>Your Inbox</h2>
+                <div id="messages-list" class="messages-list">
+                    <p>No messages yet</p>
+                </div>
+            </div>
+
+            <!-- Send Page -->
+            <div id="send-page" class="page">
+                <h2>Send Anonymous Message</h2>
+                <form id="send-form">
+                    <input type="text" id="recipient" placeholder="Recipient code or username" required>
+                    <textarea id="message" rows="4" placeholder="Your message" required></textarea>
+                    <button type="submit" class="btn btn-primary">Send</button>
+                </form>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profile-page" class="page">
+                <h2>My Profile</h2>
+                <div class="profile-card">
+                    <p><strong>Username:</strong> <span id="profile-username"></span></p>
+                    <p><strong>Email:</strong> <span id="profile-email"></span></p>
+                    <p><strong>Account Created:</strong> <span id="profile-created"></span></p>
+                    <p><strong>Referral Earnings:</strong> R<span id="profile-earnings">0</span></p>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings-page" class="page">
+                <h2>Settings</h2>
+                <div class="settings-section">
+                    <h3>Change Password</h3>
+                    <form id="change-password-form">
+                        <input type="password" id="current-password" placeholder="Current Password" required>
+                        <input type="password" id="new-password" placeholder="New Password" required>
+                        <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                    </form>
+                </div>
+                <div class="settings-section">
+                    <h3>Theme Color</h3>
+                    <div class="theme-options">
+                        <input type="color" id="theme-color" value="#6366f1">
+                        <button type="button" class="btn btn-secondary" onclick="applyTheme()">Apply Theme</button>
+                    </div>
+                </div>
+                <div class="settings-section danger-zone">
+                    <h3>Danger Zone</h3>
+                    <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+                </div>
+            </div>
+
+            <!-- Referral Page -->
+            <div id="referral-page" class="page">
+                <h2>Referral Program</h2>
+                <div class="referral-card">
+                    <h3>Earn R10 + R10 per referral!</h3>
+                    <p>Share your link and earn rewards.</p>
+                    <div class="referral-section">
+                        <h4>Your Referral Link:</h4>
+                        <div class="referral-link-container">
+                            <input type="text" id="referral-link" readonly>
+                            <button class="btn btn-primary" onclick="copyReferralLink()">Copy</button>
+                        </div>
+                    </div>
+                    <div class="referral-section">
+                        <h4>Your Recipient Code:</h4>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input type="text" id="recipient-code-display" readonly style="flex:1; background:#f9fafb; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+                            <button class="btn btn-primary" onclick="copyRecipientCode()">Copy</button>
+                        </div>
+                        <p style="margin-top:8px; color:#666;">Share this code so others can send you anonymous messages.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Us Page -->
+            <div id="about-page" class="page">
+                <h2>About Us</h2>
+                <div class="about-content">
+                    <h3>Anonymous Message App</h3>
+                    <p>Share your thoughts anonymously. Contact us at:</p>
+                    <p>📞 0765160521<br>
+                    📧 <a href="mailto:silindelwasimelane@gmail.com">silindelwasimelane@gmail.com</a></p>
+                </div>
+            </div>
+        </div> <!-- main-content -->
+    </div> <!-- dashboard-wrapper -->
+
+    <footer class="site-footer">@annonymous || SiyamThanda SimeLane - 2026</footer>
+    <script src="script.js"></script>
+</body>
+</html>
